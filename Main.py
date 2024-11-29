@@ -34,7 +34,16 @@ with gr.Blocks() as demo:
 
     output_video = gr.Video(label="Trimmed Video")
     download_btn = gr.Button("Download & Trim")
+    download_link = gr.File(label="Download Trimmed Video")
 
-    download_btn.click(download_youtube_video, inputs=[url, start_time, end_time], outputs=output_video)
+    def process_and_return_file(url, start_time, end_time):
+        output_path = download_youtube_video(url, start_time, end_time)
+        return output_path if os.path.isfile(output_path) else None
 
-demo.launch()
+    download_btn.click(
+        process_and_return_file, 
+        inputs=[url, start_time, end_time], 
+        outputs=[output_video, download_link]
+    )
+
+demo.launch(share=True)
