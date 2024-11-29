@@ -18,11 +18,20 @@ def download_youtube_video(url, start_time=0, end_time=None):
         # Save the trimmed video
         output_path = "trimmed_video.mp4"
         clip.write_videofile(output_path, codec="libx264")
-        
+
         return output_path
 
     except Exception as e:
         return f"Error: {e}"
+
+def process_and_return_file(url, start_time, end_time):
+    output_path = download_youtube_video(url, start_time, end_time)
+    
+    # Return outputs: Gradio requires both a video preview and a file output
+    if os.path.isfile(output_path):
+        return output_path, output_path  # Return the same file for both preview and download
+    else:
+        return None, None  # Handle error case
 
 # Gradio Interface
 with gr.Blocks() as demo:
@@ -33,13 +42,9 @@ with gr.Blocks() as demo:
     end_time = gr.Number(label="End Time (in seconds, optional)", value=None)
 
     output_video = gr.Video(label="Trimmed Video")
-    download_btn = gr.Button("Download & Trim")
     download_link = gr.File(label="Download Trimmed Video")
 
-    def process_and_return_file(url, start_time, end_time):
-        output_path = download_youtube_video(url, start_time, end_time)
-        return output_path if os.path.isfile(output_path) else None
-
+    download_btn = gr.Button("Download & Trim")
     download_btn.click(
         process_and_return_file, 
         inputs=[url, start_time, end_time], 
